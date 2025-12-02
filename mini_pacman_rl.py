@@ -4,9 +4,7 @@ import random
 import numpy as np
 from PIL import Image, ImageDraw
 
-# =========================
-# Génération de labyrinthe
-# =========================
+
 
 def generate_maze_map(width, height, coin_prob=0.10):
     """
@@ -57,14 +55,12 @@ def generate_maze_map(width, height, coin_prob=0.10):
         else:
             stack.pop()
 
-    # Chemins ouverts autour des bords internes
     for y in range(1, height - 1):
         for x in range(1, width - 1):
             if x == 1 or x == width - 2 or y == 1 or y == height - 2:
                 if grid[y][x] == "#":
                     grid[y][x] = "."
 
-    # Pièces
     for y in range(1, height - 1):
         for x in range(1, width - 1):
             if grid[y][x] == "." and random.random() < coin_prob:
@@ -73,16 +69,14 @@ def generate_maze_map(width, height, coin_prob=0.10):
     return ["".join(row) for row in grid]
 
 
-# =========================
-# Environnement Mini-Pacman
-# =========================
+
 
 class MiniPacmanEnv:
     ACTIONS = {
-        0: (0, -1),   # up
-        1: (0, 1),    # down
-        2: (-1, 0),   # left
-        3: (1, 0)     # right
+        0: (0, -1),  
+        1: (0, 1),    
+        2: (-1, 0),  
+        3: (1, 0)     
     }
 
     def __init__(self, width=15, height=11, max_steps=100, coin_prob=0.15):
@@ -95,14 +89,9 @@ class MiniPacmanEnv:
 
 
     def render_image(self, cell_size=32):
-        """
-        Renvoie une image PIL représentant la grille actuelle.
-        Couleurs proches de la version pygame.
-        """
         width_px = self.width * cell_size
         height_px = self.height * cell_size
 
-        # Image noire de base
         img = Image.new("RGB", (width_px, height_px), (0, 0, 0))
         draw = ImageDraw.Draw(img)
 
@@ -114,7 +103,6 @@ class MiniPacmanEnv:
         COLOR_PACMAN = (255, 255, 0)
         COLOR_GHOST = (255, 0, 0)
 
-        # fond + murs + grille
         for y in range(self.height):
             for x in range(self.width):
                 x0 = x * cell_size
@@ -127,7 +115,6 @@ class MiniPacmanEnv:
                 else:
                     draw.rectangle([x0, y0, x1, y1], fill=COLOR_BG, outline=COLOR_GRID)
 
-        # pièces en fonction du coins_mask
         for pos, idx in self.coin_index.items():
             if (self.coins_mask >> idx) & 1:
                 x, y = pos
@@ -136,14 +123,12 @@ class MiniPacmanEnv:
                 r = cell_size // 6
                 draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=COLOR_COIN)
 
-        # Pacman
         px, py = self.pacman_pos
         cx = px * cell_size + cell_size // 2
         cy = py * cell_size + cell_size // 2
         r = cell_size // 2 - 4
         draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=COLOR_PACMAN)
 
-        # Fantôme
         fx, fy = self.ghost_pos
         x0 = fx * cell_size + 4
         y0 = fy * cell_size + 4
@@ -172,7 +157,6 @@ class MiniPacmanEnv:
                 elif c == "F":
                     self.ghost_start = (x, y)
 
-        # si P / F non présents dans la map, on les place au hasard
         free_cells = [(x, y) for y in range(1, self.height - 1)
                       for x in range(1, self.width - 1)
                       if (x, y) not in self.walls]
@@ -222,7 +206,6 @@ class MiniPacmanEnv:
         reward = -0.1
         done = False
 
-        # Déplacement Pacman
         old_px, old_py = self.pacman_pos
         dx, dy = MiniPacmanEnv.ACTIONS[action]
         new_px = old_px + dx
@@ -232,27 +215,23 @@ class MiniPacmanEnv:
             self.pacman_pos = (new_px, new_py)
         else:
             self.pacman_pos = (old_px, old_py)
-            reward -= 0.5  # pénalité tentative mur
+            reward -= 0.5 
 
         if self.pacman_pos == (old_px, old_py):
-            reward -= 0.2  # pas de mouvement réel
+            reward -= 0.2  
 
-        # Pièce ?
         if self.pacman_pos in self.coin_index:
             idx = self.coin_index[self.pacman_pos]
             if (self.coins_mask >> idx) & 1:
                 self.coins_mask &= ~(1 << idx)
                 reward += 5.0
 
-        # Victoire si plus de pièces
         if self.coins_mask == 0:
             reward += 20.0
             done = True
 
-        # Fantôme bouge
         self._move_ghost_random()
 
-        # Pacman attrapé ?
         if self.pacman_pos == self.ghost_pos:
             reward -= 20.0
             done = True
@@ -266,7 +245,6 @@ class MiniPacmanEnv:
 
         return state, reward, done, {}
 
-    # Représentation ASCII pour Streamlit
     def get_ascii_grid(self):
         """
         Retourne la grille actuelle sous forme de liste de strings
@@ -274,13 +252,11 @@ class MiniPacmanEnv:
         """
         grid = [list(row) for row in self.grid_str]
 
-        # réinitialiser P/F/C selon état courant
         for y in range(self.height):
             for x in range(self.width):
                 if grid[y][x] in ("P", "F"):
                     grid[y][x] = "."
 
-        # pièces selon coins_mask
         for pos, idx in self.coin_index.items():
             x, y = pos
             if (self.coins_mask >> idx) & 1:
@@ -295,11 +271,6 @@ class MiniPacmanEnv:
         grid[fy][fx] = "F"
 
         return ["".join(row) for row in grid]
-
-
-# =========================
-# Agent Q-Learning
-# =========================
 
 class QLearningAgent:
     def __init__(self, n_actions=4, alpha=0.1, gamma=0.99,
@@ -320,11 +291,9 @@ class QLearningAgent:
     def choose_action(self, state):
         q_values = self.get_Q(state)
 
-        # exploration
         if random.random() < self.epsilon:
             return random.randint(0, self.n_actions - 1)
 
-        # exploitation : choisir au hasard parmi les meilleures actions
         max_q = np.max(q_values)
         best_actions = np.flatnonzero(q_values == max_q)
         return int(random.choice(best_actions))
@@ -396,10 +365,10 @@ def play_episode(env, agent, max_steps=100):
 
 def play_episode_images(env, agent, max_steps=100, cell_size=32, epsilon_demo=0.05):
     old_epsilon = agent.epsilon
-    agent.epsilon = epsilon_demo  # petite exploration
+    agent.epsilon = epsilon_demo  
 
     frames = []
-    state = env.reset()  # reset sans regenerate_maze → même labyrinthe
+    state = env.reset()  
     done = False
     steps = 0
 
