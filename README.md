@@ -91,7 +91,9 @@ Les deux graphiques montrent une progression régulière du comportement de l’
 
 ## 4.1 Récompense moyenne
 
-La récompense commence autour de –250 et monte progressivement jusqu’à environ +80.
+
+![Graphe 1](./Capture d'écran 2025-12-03 141117.png)
+La récompense commence autour de –25 et monte progressivement jusqu’à environ +10.
 Cela indique que l’agent :
 
 réduit fortement ses comportements pénalisants (collisions, immobilité),
@@ -103,7 +105,9 @@ La courbe se stabilise après environ 3 000 épisodes, signe de convergence de l
 
 ## 4.2 Pièces ramassées
 
-Le nombre de pièces collectées passe d’environ 10 au début à 28–30 en fin d’entraînement.
+![Graphe 2](./Capture d'écran 2025-12-03 141130.png)
+
+Le nombre de pièces collectées passe d’environ 2 au début à 6 en fin d’entraînement.
 Cela montre que :
 
 l’agent identifie mieux les zones du labyrinthe contenant des pièces,
